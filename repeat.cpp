@@ -43,7 +43,7 @@ long Repeat::getDelayMs() {
 }
 
 void Repeat::update() {
-	if(times >= maxTimes and maxTimes > 0) return; // Nothing to do
+	if(times >= maxTimes && maxTimes > 0) return; // Nothing to do
 	if(delayMs > 0) {
 		if(timer.getDuration() < delayMs)
 			return;
@@ -61,6 +61,32 @@ void Repeat::update() {
 }
 
 /************************/
+
+/***** LinkedRepeatNode class *****/
+// Used internally for RepeatScheduler only
+
+RepeatScheduler::LinkedRepeatNode::LinkedRepeatNode(Repeat *repeat) {
+	this->repeat = repeat;
+}
+
+void RepeatScheduler::LinkedRepeatNode::setNext(LinkedRepeatNode *next) {
+	this->next = next;
+}
+
+RepeatScheduler::LinkedRepeatNode* RepeatScheduler::LinkedRepeatNode::getNext() {
+	return this->next;
+}
+
+Repeat* RepeatScheduler::LinkedRepeatNode::getRepeat() {
+	return repeat;
+}
+
+long RepeatScheduler::LinkedRepeatNode::getPriority() {
+	// Leftover time after function has run
+	return repeat->getFunctionTimeAverage() - repeat->getDelayMs();
+}
+
+/**********************************/
 
 /***** RepeatScheduler class *****/
 
@@ -80,6 +106,9 @@ void RepeatScheduler::update() {
 	LinkedRepeatNode *last = NULL, *node = this->head, *next;
 	while(node) {
 		next = node->getNext();
+		// Swap current with next if next has lower priority
+		// Note: priority is time left after function finishes but before next execution,
+		// 	     essentially we want to maximize leftover time
 		if(next != NULL && next->getPriority() < node->getPriority()) {
 			LinkedRepeatNode *nextnext = next->getNext();
 			if(last) {

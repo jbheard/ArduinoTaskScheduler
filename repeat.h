@@ -76,27 +76,11 @@ public:
 private:
 	class LinkedRepeatNode {
 	public:
-		LinkedRepeatNode(Repeat *repeat) {
-			this->repeat = repeat;
-		}
-		
-		void setNext(LinkedRepeatNode *next) {
-			this->next = next;
-		}
-		
-		LinkedRepeatNode *getNext() {
-			return this->next;
-		}
-		
-		Repeat *getRepeat() {
-			return repeat;
-		}
-		
-		long getPriority() {
-			// Leftover time after function has run
-			return repeat->getFunctionTimeAverage() - repeat->getDelayMs();
-		}
-
+		LinkedRepeatNode(Repeat *repeat);
+		void setNext(LinkedRepeatNode *next);
+		LinkedRepeatNode *getNext();
+		Repeat *getRepeat();
+		long getPriority();
 	private:
 		Repeat *repeat;
 		LinkedRepeatNode *next;
@@ -107,3 +91,4 @@ private:
 };
 
 #endif // REPEAT_H
+
