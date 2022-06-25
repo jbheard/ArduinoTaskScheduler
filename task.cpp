@@ -52,7 +52,7 @@ bool Task::isDone() {
 void Task::update() {
 	if(functionCalls >= maxTimes && maxTimes > 0) return; // Nothing to do
 	if(delayMs > 0) {
-		if(timer.getDuration() < delayMs)
+		if(timer.getDuration() < (unsigned long)delayMs)
 			return;
 		else
 			timer.reset();
@@ -74,6 +74,7 @@ void Task::update() {
 
 TaskScheduler::LinkedTaskNode::LinkedTaskNode(Task *task) {
 	this->task = task;
+	this->next = NULL;
 }
 
 void TaskScheduler::LinkedTaskNode::setNext(LinkedTaskNode *next) {
@@ -93,15 +94,22 @@ Task* TaskScheduler::LinkedTaskNode::getTask() {
 /***** TaskScheduler class *****/
 
 TaskScheduler::TaskScheduler() {
-	length = 0;
 	head = NULL;
 }
 
 void TaskScheduler::addTask(Task *task) {
-	LinkedTaskNode *oldHead = head;
-	this->head = new LinkedTaskNode(task);
-	head->setNext(oldHead);
-	length ++;
+	LinkedTaskNode *newNode = new LinkedTaskNode(task);
+
+	if(this->head == NULL) {
+		this->head = newNode;
+		return;
+	}
+
+	LinkedTaskNode *node = this->head;
+	while(node->getNext()) {
+		node = node->getNext();
+	}
+	node->setNext(newNode);
 }
 
 bool TaskScheduler::isDone() {
@@ -109,26 +117,26 @@ bool TaskScheduler::isDone() {
 }
 
 void TaskScheduler::update() {
-	LinkedTaskNode *last = NULL, *node = this->head, *next;
+	LinkedTaskNode *prev = NULL, *node = this->head;
 	while(node) {
-		next = node->getNext();
-
 		// Remove any completed nodes from linked list
 		if(node->getTask()->isDone()) {
-			if(last) {
-				last->setNext(next);
+			LinkedTaskNode *next = node->getNext();
+			if(prev) {
+				prev->setNext(next);
 			} else {
 				this->head = next;
 			}
 			delete node;
 			node = next;
+			Serial.println("Deleted task");
 			continue;
 		}
 
 		node->getTask()->update();
 
-		last = node;
-		node = next;
+		prev = node;
+		node = node->getNext();
 	}
 }
 

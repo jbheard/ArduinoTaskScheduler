@@ -78,7 +78,6 @@ private:
 	long functionTimeAverage;
 };
 
-
 class TaskScheduler {
 public:
 	TaskScheduler();
@@ -105,7 +104,6 @@ private:
 		LinkedTaskNode *next;
 	};
 
-	int length;
 	LinkedTaskNode *head;
 };
 
