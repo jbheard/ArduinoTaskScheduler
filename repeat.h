@@ -1,8 +1,6 @@
 #ifndef REPEAT_H
 #define REPEAT_H
 
-#include "Arduino.h"
-
 class Milliseconds {
 public:
 	// Note: should keep this one relatively low, since 2^32 is only 49 days, we could quickly overflow
@@ -55,23 +53,26 @@ public:
     void update();
 	long getFunctionTimeAverage();
 	long getDelayMs();
+	bool isDone();
 
 private:
     void (*func)();
     Timer timer;
     long delayMs;
     int maxTimes;
-    int times;
 	unsigned long functionTimeTotal;
 	long functionCalls;
 	long functionTimeAverage;
 };
 
+/** Automatically runs Repeat objects to minimize downtime
+**/
 class RepeatScheduler {
 public:
 	RepeatScheduler();
 	void addRepeat(Repeat *repeat);
 	void update();
+	bool isDone();
 
 private:
 	class LinkedRepeatNode {

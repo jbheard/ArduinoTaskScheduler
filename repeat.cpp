@@ -28,7 +28,6 @@ Repeat::Repeat( void (*func)(), long delayMs, int maxTimes) {
 	this->func = func;
 	this->delayMs = delayMs;
 	this->maxTimes = maxTimes;
-	times = (maxTimes > 0) ? 0 : -1;
 	functionTimeTotal = 0;
 	functionCalls = 0;
 	functionTimeAverage = 0;
@@ -42,8 +41,12 @@ long Repeat::getDelayMs() {
 	return delayMs;
 }
 
+bool Repeat::isDone() {
+	return functionCalls >= maxTimes && maxTimes > 0;
+}
+
 void Repeat::update() {
-	if(times >= maxTimes && maxTimes > 0) return; // Nothing to do
+	if(functionCalls >= maxTimes && maxTimes > 0) return; // Nothing to do
 	if(delayMs > 0) {
 		if(timer.getDuration() < delayMs)
 			return;
@@ -102,10 +105,24 @@ void RepeatScheduler::addRepeat(Repeat *repeat) {
 	length ++;
 }
 
+bool RepeatScheduler::isDone() {
+	return this->head == NULL;
+}
+
 void RepeatScheduler::update() {
 	LinkedRepeatNode *last = NULL, *node = this->head, *next;
 	while(node) {
 		next = node->getNext();
+		// Remove any completed nodes
+		if(node->getRepeat()->isDone()) {
+			if(last) {
+				last->setNext(next);
+			} else {
+				this->head = next;
+			}
+			node = next;
+			continue;
+		}
 		// Swap current with next if next has lower priority
 		// Note: priority is time left after function finishes but before next execution,
 		// 	     essentially we want to maximize leftover time
